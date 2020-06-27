@@ -10,13 +10,7 @@
 # import pandas as pd
 import re
 import csv
-import collections
-import pyecharts
 from bean.item import comment_item
-import numpy as np # numpy数据处理库
-import jieba # 结巴分词
-import wordcloud # 词云展示库
-import matplotlib.pyplot as plt # 图像展示库
 
 def make_list():
     f=open("../dataSource/country.csv",'r',encoding="utf-8")

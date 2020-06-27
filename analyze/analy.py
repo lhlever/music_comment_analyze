@@ -10,7 +10,7 @@
 import re
 
 from matplotlib import collections
-from pyecharts.charts import Geo
+from pyecharts.charts import Geo, Line, Pie
 from snownlp import SnowNLP
 import pandas as pd
 import csv
@@ -39,12 +39,37 @@ def get_content():
             print(str(s.sentiments))
             lists.append(s.sentiments)
         count+=1;
+    lists = [round(i, 3) for i in lists]
     return lists
 
 def draw_line_sentiment(lists):
-    line = pyecharts.Line("情感分析得分走势图", width=1200, height=600)
-    line.add("情感分析得分",list(range(1,len(lists)+1)),lists, mark_point=['average'], is_datazoom_show=True,is_smooth=True)
-    line.render('line_sentiments.html')
+    print(lists)
+    c=Line(init_opts=opts.InitOpts(width='2000px',height='600px'))
+    c.add_xaxis(xaxis_data=list(range(1,len(lists)+1)))
+    # c.add_xaxis(xaxis_data=content)
+    c.add_yaxis(series_name="",y_axis=lists)
+
+    data_zoom = {
+        "show": True,
+        "title": {"zoom": "data zoom", "back": "data zoom restore"}
+    }
+    c.set_global_opts(
+        # 设置标题
+        title_opts=opts.TitleOpts(title="情感分析得分走势图"),
+        # 设置图例is_show=False是不显示图例
+        legend_opts=opts.LegendOpts(is_show=True),
+        # 设置提示项
+        tooltip_opts=opts.TooltipOpts(trigger='axis', axis_pointer_type='cross'),
+        # 工具箱的设置
+        toolbox_opts=opts.ToolboxOpts(is_show=True, feature=opts.ToolBoxFeatureOpts(data_zoom=data_zoom))
+
+    )
+    c.set_series_opts()
+    c.render('line_sentiments.html')
+    # line = pyecharts.Line("情感分析得分走势图", width=1200, height=600)
+    # line.add("情感分析得分",list(range(1,len(lists)+1)),lists, mark_point=['average'], is_datazoom_show=True,is_smooth=True)
+    # line.render('line_sentiments.html')
+
 
 #-----------------------------------
 def draw_pie_sentiment(lists):
@@ -53,9 +78,23 @@ def draw_pie_sentiment(lists):
     pinshu = fenzu.value_counts()  # series,区间-个数
     print(fenzu.categories)
     list_label=["(0.0-0.1)", "(0.1-0.2)", "(0.2-0.3)", "(0.3-0.4)", "(0.4-0.5)", "(0.5-0.6)", "(0.6-0.7)", "(0.7-0.8)", "(0.8-0.9)", "(0.9-1.0)"]
-    pie = pyecharts.Pie("评论情感色彩评分", '0->1（消极->积极）', title_pos='center')
-    pie.add('天气类型', list_label, pinshu.tolist(),radius=[20,70],is_label_show=True,legend_pos = 'left', label_text_color = None, legend_orient = 'vertical')
+    # pie = pyecharts.Pie("评论情感色彩评分", '0->1（消极->积极）', title_pos='center')
+    # pie.add('天气类型', list_label, pinshu.tolist(),radius=[20,70],is_label_show=True,legend_pos = 'left', label_text_color = None, legend_orient = 'vertical')
+    # pie.render('pie_sentiments.html')
+
+    pie = Pie(init_opts=opts.InitOpts(width='1000px', height='600px'))
+    data_pie = [list(i) for i in zip(list_label, pinshu.tolist())]
+    pie.add(series_name="该区间占比：", data_pair=data_pie)
+    # 设置全局项
+    pie.set_global_opts(title_opts=opts.TitleOpts(title="评论情感色彩评分",subtitle="0->1（消极->积极）", pos_left='center', pos_top=20))
+    # 设置每项数据占比
+    pie.set_series_opts(tooltip_opts=opts.TooltipOpts(trigger='item', formatter="{a} <br/> {b}:{c} ({d}%)"))
     pie.render('pie_sentiments.html')
+
+
+# draw_line_sentiment(get_content())
+# draw_pie_sentiment(get_content())
+
 
 def make_wordCloud():
     object_list=[]
@@ -77,8 +116,7 @@ def make_wordCloud():
     plt.axis('off')  # 关闭坐标轴
     plt.show()  # 显示图像
 
-
-
+# make_wordCloud()
 def VIP_rate():
     true=0
     false=0
@@ -87,9 +125,20 @@ def VIP_rate():
             true+=1
         else:
             false+=1
-    pie = pyecharts.Pie("评论用户中是否VIP比列", '逆光-孙燕姿', title_pos='center')
-    pie.add('', ["vip用户","非vip用户"], [true,false],is_label_show=True,legend_pos = 'left', label_text_color = None, legend_orient = 'vertical', radius = [30, 75])
-    pie.render('Pie-weather.html')
+    # pie = pyecharts.Pie("评论用户中是否VIP比列", '愚人的国度-孙燕姿', title_pos='center')
+    # pie.add('', ["vip用户","非vip用户"], [true,false],is_label_show=True,legend_pos = 'left', label_text_color = None, legend_orient = 'vertical', radius = [30, 75])
+    # pie.render('Pie-VIP.html')
+
+    pie = Pie(init_opts=opts.InitOpts(width='1000px', height='600px'))
+    data_pie = [list(i) for i in zip(["vip用户","非vip用户"],[true,false])]
+    pie.add(series_name="该类用户占比：", data_pair=data_pie)
+    # 设置全局项
+    pie.set_global_opts(
+        title_opts=opts.TitleOpts(title="评论用户中VIP比列", subtitle="愚人的国度-孙燕姿", pos_left='center', pos_top=20))
+    # 设置每项数据占比
+    pie.set_series_opts(tooltip_opts=opts.TooltipOpts(trigger='item', formatter="{a} <br/> {b}:{c} ({d}%)"))
+    pie.render('pie_VIP.html')
+VIP_rate()
 
 def map():
     districts=[]
@@ -136,4 +185,4 @@ def map():
 
 
     f.close()
-map()
+# map()
